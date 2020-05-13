@@ -31,7 +31,12 @@ subroutine GetMaxCoordinates(A, x1, y1, x2, y2)
             
             call FindMaxInArray(current_column, current_sum, Up, Down)
 
+            ! write(*,*) '    max_sum =', max_sum 
+            ! write(*,*) 'current_sum =', current_sum
+
             if (current_sum > max_sum) then
+                ! write(*,*) 'get!', x1, y1, x2, y2
+                
                 max_sum = current_sum
                 x1 = Up
                 x2 = Down
@@ -56,7 +61,11 @@ subroutine FindMaxInArray(A, Summ, Up, Down)
     cur_sum = 0
     minus_pos = 0
 
-    do i=1, size(A)
+    do i = 1, size(A)
+        ! write(*,*) '#I -------', i
+        ! write(*,*) '   A(i) =', A(i)
+        ! write(*,*) 'cur_sum =', cur_sum
+
         cur_sum = cur_sum + A(i)
         if (cur_sum > Summ) then
             Summ = cur_sum
