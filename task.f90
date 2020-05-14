@@ -1,14 +1,21 @@
 module task
 use const
+use omp_lib
 implicit none
 contains
 
 subroutine GetMaxCoordinates(A, x1, y1, x2, y2)
     real(mp), intent(in), dimension(:,:) :: A
     integer(4), intent(out) :: x1, y1, x2, y2
-    integer(4) :: n, L, R, Up, Down, m, tmp
+    integer(4) :: n, L, R, Up, Down, m
     real(mp), allocatable :: current_column(:)
     real(mp) :: current_sum, max_sum
+
+    write(*,*) omp_in_parallel(), omp_get_thread_num(), omp_get_num_threads()
+    write(*,*) "-------"
+    !$omp parallel
+    write(*,*) omp_in_parallel(), omp_get_thread_num(), omp_get_num_threads()
+    !$omp end parallel
 
     m = size(A, dim = 1) 
     n = size(A, dim = 2) 

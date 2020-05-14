@@ -1,4 +1,4 @@
-FLAGS =  
+FLAGS = -C -O2 -qopenmp
 TM = task
 CM = const
 COMPILE = ifort
