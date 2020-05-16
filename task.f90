@@ -4,56 +4,68 @@ use omp_lib
 implicit none
 contains
 
-subroutine GetMaxCoordinates(A, x1, y1, x2, y2)
+subroutine GetMaxCoordinates(A, mx1, my1, mx2, my2)
     real(mp), intent(in), dimension(:,:) :: A
-    integer(4), intent(out) :: x1, y1, x2, y2
-    integer(4) :: n, L, R, Up, Down, m
-    real(mp), allocatable :: current_column(:)
-    real(mp) :: current_sum, max_sum
-
-    write(*,*) omp_in_parallel(), omp_get_thread_num(), omp_get_num_threads()
-    write(*,*) "-------"
-    !$omp parallel
-    write(*,*) omp_in_parallel(), omp_get_thread_num(), omp_get_num_threads()
-    !$omp end parallel
+    real(mp), dimension(:), allocatable :: current_column, max_sum
+    real(mp) :: current_sum
+    integer(4), intent(out) :: mx1, my1, mx2, my2
+    integer(4), dimension(:), allocatable :: x1, y1, x2, y2
+    integer(4) :: n, m, L, R, Up, Down, i
 
     m = size(A, dim = 1) 
     n = size(A, dim = 2) 
 
-    allocate(current_column(m))
+    write(*,'(a, i7, i7)') '#', m, n
 
-    x1 = 1
-    y1 = 1
-    x2 = 1
-    y2 = 1
-    max_sum = A(1, 1)
+    allocate(current_column(m), max_sum(n))
+    allocate(x1(n), x2(n), y1(n), y2(n))
 
+    !$omp parallel
+    !$omp do private(current_column, current_sum, R, Up, Down)
     do L = 1, n
         current_column = A(:, L)
+
+        x1(L) = 1
+        y1(L) = L
+        x2(L) = 1
+        y2(L) = L
+        max_sum(L) = A(1, L)
 
         do R = L, n
             if (R > L) then
                 current_column = current_column + A(:, R)
             endif 
-            
+
             call FindMaxInArray(current_column, current_sum, Up, Down)
 
-            ! write(*,*) '    max_sum =', max_sum 
-            ! write(*,*) 'current_sum =', current_sum
-
-            if (current_sum > max_sum) then
-                ! write(*,*) 'get!', x1, y1, x2, y2
-                
-                max_sum = current_sum
-                x1 = Up
-                x2 = Down
-                y1 = L
-                y2 = R
+            if (current_sum > max_sum(L)) then
+                max_sum(L) = current_sum
+                x1(L) = Up
+                x2(L) = Down
+                y1(L) = L
+                y2(L) = R
             endif
         end do
     end do
-    deallocate(current_column)
+    !$omp end do
+    !$omp end parallel
+
+    ! write(*,*) '# ms', max_sum
+    ! write(*,*) '# x1', x1
+    ! write(*,*) '# y1', y1
+    ! write(*,*) '# x2', x2
+    ! write(*,*) '# y2', y2
+
+    ! write(*,*) '# maxloc:', maxloc(max_sum)
+    i = maxloc(max_sum, dim = 1)
+    mx1 = x1(i)
+    my1 = y1(i)
+    mx2 = x2(i)
+    my2 = y2(i)
+
+    deallocate(current_column, max_sum, x1, x2, y1, y2)
 end subroutine
+
 
 subroutine FindMaxInArray(A, Summ, Up, Down)
     real(mp), intent(in), dimension(:) :: A
@@ -69,10 +81,6 @@ subroutine FindMaxInArray(A, Summ, Up, Down)
     minus_pos = 0
 
     do i = 1, size(A)
-        ! write(*,*) '#I -------', i
-        ! write(*,*) '   A(i) =', A(i)
-        ! write(*,*) 'cur_sum =', cur_sum
-
         cur_sum = cur_sum + A(i)
         if (cur_sum > Summ) then
             Summ = cur_sum
