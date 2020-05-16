@@ -10,7 +10,7 @@ program main
 
     open(1, file = 'data.dat') !файлы, куда они выводятся 
 
-    write(1, '(a, 1x, i6, i6)') "#", n, m
+    write(1, '(1x, i6, i6)') n, m
 
     allocate(x(n,m))
 

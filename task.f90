@@ -6,14 +6,14 @@ contains
 
 subroutine GetMaxCoordinates(A, mx1, my1, mx2, my2)
     real(mp), intent(in), dimension(:,:) :: A
+    integer(4), intent(out) :: mx1, my1, mx2, my2
     real(mp), dimension(:), allocatable :: current_column, max_sum
     real(mp) :: current_sum
-    integer(4), intent(out) :: mx1, my1, mx2, my2
     integer(4), dimension(:), allocatable :: x1, y1, x2, y2
-    integer(4) :: n, m, L, R, Up, Down, i
+    integer(4) :: n, m, L, R, Up, Down
 
-    m = size(A, dim = 1) 
-    n = size(A, dim = 2) 
+    m = size(A, dim = 1)
+    n = size(A, dim = 2)
 
     write(*,'(a, i7, i7)') '#', m, n
 
@@ -21,14 +21,14 @@ subroutine GetMaxCoordinates(A, mx1, my1, mx2, my2)
     allocate(x1(n), x2(n), y1(n), y2(n))
 
     !$omp parallel
-    !$omp do private(current_column, current_sum, R, Up, Down)
+    !$omp do private(current_column, current_sum, L, R, Up, Down)
     do L = 1, n
         current_column = A(:, L)
 
-        x1(L) = 1
         y1(L) = L
-        x2(L) = 1
         y2(L) = L
+        x1(L) = 1
+        x2(L) = 1
         max_sum(L) = A(1, L)
 
         do R = L, n
@@ -50,18 +50,10 @@ subroutine GetMaxCoordinates(A, mx1, my1, mx2, my2)
     !$omp end do
     !$omp end parallel
 
-    ! write(*,*) '# ms', max_sum
-    ! write(*,*) '# x1', x1
-    ! write(*,*) '# y1', y1
-    ! write(*,*) '# x2', x2
-    ! write(*,*) '# y2', y2
-
-    ! write(*,*) '# maxloc:', maxloc(max_sum)
-    i = maxloc(max_sum, dim = 1)
-    mx1 = x1(i)
-    my1 = y1(i)
-    mx2 = x2(i)
-    my2 = y2(i)
+    mx1 = x1(maxloc(max_sum, dim = 1))
+    my1 = y1(maxloc(max_sum, dim = 1))
+    mx2 = x2(maxloc(max_sum, dim = 1))
+    my2 = y2(maxloc(max_sum, dim = 1))
 
     deallocate(current_column, max_sum, x1, x2, y1, y2)
 end subroutine
